@@ -1,0 +1,15 @@
+#!/bin/sh
+
+## modify the line below as needed. 
+DEVS="0000:09:00.0 0000:09:00.1"
+
+for DEV in $DEVS; do
+    echo "vfio-pci" > /sys/bus/pci/devices/$DEV/driver_override
+    vendor=$(cat /sys/bus/pci/devices/$DEV/vendor)
+    device=$(cat /sys/bus/pci/devices/$DEV/device)
+        if [ -e /sys/bus/pci/devices/$DEV/driver ]; then
+            echo $DEV > /sys/bus/pci/devices/$DEV/driver/unbind
+        fi
+    echo $vendor $device > /sys/bus/pci/drivers/vfio-pci/new_id
+done
+modprobe -i vfio-pci

@@ -1,0 +1,465 @@
+## THIS IS NOT A TUTORIAL, BUT A BLOCK-NOTE.
+IT SUMMARIZES THE STEPS FOR A CLEAN PCI-PASSTHROUGH BY ITS PRIMARY AUTHOR.
+--------------------------------------------------------------------------
+
+## WARNING: the configuration of the pci-stub declared in many tutorials concerns only the
+kernels prior to version 4.1. All current or correctly updated distributions have
+kernels greater than 4.1. There is no need to consider this configuration.
+
+## Identification of the test machine:
+-------------------------------------
+CPU: AMD Ryzen 5 1600 Six-Core @ 3.80GHz (6 Cores)
+Motherboard: Gigabyte AX370-Gaming K3
+Bios: last
+Chipset: AMD Family 17h
+Memory: 32 GB
+Guest Graphics: Gigabyte NVIDIA GeForce GTX 1060 3GB 3072MB pcie x16 slot
+Host: NVIDIA EVGA GeForce GTX 1060 6GB 6144MB pcie x8 slot
+OS: Fedora 27 Mate
+Nvidia owner driver.
+
+## graphic card and Xorg configuration
+--------------------------------------
+The graphics card dedicated to the VM must be configured in the xorg.conf as disabled to avoid all
+automatic support by Linux environment.
+The following xorg file is an example from the test machine and needs to be modified as needed:
+(getting BusID with: lspci -nn | grep -e "VGA")
+``
+Section "Monitor"
+    ## screen dedicated to the VM
+    # HorizSync source: edid, VertRefresh source: edid
+    Identifier     "Monitor0"
+    VendorName     "Unknown"
+    ModelName      "Idek Iiyama PL2530H"
+    HorizSync       30.0 - 83.0
+    VertRefresh     55.0 - 76.0
+EndSection
+
+Section "Monitor"
+    ## dedicated system screen
+    # HorizSync source: edid, VertRefresh source: edid
+    Identifier     "Monitor1"
+    VendorName     "Unknown"
+    ModelName      "Idek Iiyama PL2530H"
+    HorizSync       30.0 - 83.0
+    VertRefresh     55.0 - 76.0
+EndSection
+
+Section "Device"
+   ## VM dedicated card
+	Identifier	"Device0"
+	Driver		"nvidia"
+	VendorName	"NVIDIA Corporation"
+	BusID		"PCI:9:0:0"
+EndSection
+
+Section "Device"
+	## System dedicated card
+	Identifier	"Device1"
+	Driver		"nvidia"
+	VendorName	"NVIDIA Corporation"
+	BusID		"PCI:6:0:0"
+EndSection
+
+## The 'ServerLayout' section is usually better placed at the top of the xorg.conf file.
+## The position given here is only to allow a better reading of the process.
+Section "ServerLayout"
+	Identifier	"Layout0"
+	Screen 1	"Screen1" 0 0
+	## désactivation de la carte dédiée à la VM
+	Inactive	"Device0"
+EndSection
+
+Section "Screen"
+	## mimimum configuration for hardware dedicated to the VM
+	## pci bus x16
+	Identifier	"Screen0"
+	Device		"Device0"
+	Monitor		"Monitor0"
+EndSection
+
+Section "Screen"
+   ## normal configuration for the system board
+   ## pci bus x8
+	Identifier	"Screen1"
+	Device		"Device1"
+	Monitor		"Monitor1"
+	Option	"NoLogo" "true"
+	Option	"UseEDID" "true"
+	Option	"ProbeAllGpus" "false"
+	Option	"SLI" "Off"
+	Option	"MultiGPU" "Off"
+	Option	"BaseMosaic" "off"
+	Option	"Coolbits" "8"
+	Option	"TripleBuffer" "true"
+	Option	"Stereo" "0"
+	Option	"RenderAccel" "true"
+	Option	"DPI" "96 x 96"
+Endsection
+``
+
+## Detection of the IOMMU.
+--------------------------
+(the CPU must support the VT-d or AMD-Vi options, the VT-x option is less advisable because it is less secure)
+# the IOMMU option must be enabled in the BIOS (prerequisite)
+# Some bios allow to choose the boot GPU, if possible as much to choose the bus pci x16 for the VM.
+# and pass the GPU on pci x8 bus for boot and host.
+
+## grub options to insert either directly into the grub.cfg:
+> amd: amd_iommu=on rd.driver.pre=vfio-pci iommu=pt hugepages=2048
+> intel: intel_iommu=on rd.driver.pre=vfio-pci iommu=pt hugepages=2048
+## or either in (fedora; debian, arch):
+# /etc/default/grub, ligne GRUB_CMDLINE_LINUX
+ /etc/mkinitcpio.conf
+> 
+
+## hugepages:
+-------------
+(source '2 Answers' https://unix.stackexchange.com/questions/163495/libvirt-error-when-enabling-hugepages-for-guest)
+hugepages statically allocates an X amount of memory per core.
+Once allocated this amount of memory will not be available for the system anymore and only for applications configured to use it.
+Hugepage allocates a block of 1024M per core by default.
+Thus, we can consider blocks ranging from 1024> 2048> 3072> 4096, depending on the quantity available and
+CPU capabilities (most can not go beyond 2048).
+Hugepage is optional.
+
+# Calculation of the pages to allocate (XX representing the RAM to allocate to the VM):
+XX*1024*1024/2048 = xxxx pages
+> ex pour 8∕16Go de RAM :
+8*1024*1024/2048 = 4096 pages
+16*1024*1024/2048 = 8192 pages
+
+# insert the number of pages allocated in /etc/sysctl.conf:
+(the shm line is optional, but it may be better to define a group in shm)
+vm.nr_hugepages = 4096
+vm.hugetlb_shm_group = 36
+
+# direct test:
+Warning: the test machine (fedora 27) has an already defined mount point (/dev/hugepages/libvirt/qemu/)
+the mount point defined below is only valid for the pre-reboot test.
+mount -t hugetlbfs hugetlbfs /dev/hugepages
+sysctl vm.nr_hugepages=4096 vm.hugetlb_shm_group=36
+# note :
+If the mount point does not appear in the /dev directory after reboot, it must be added to /etc/fstab (not tested).
+hugetlbfs    /hugepages    hugetlbfs    defaults    0 0
+
+# > reboot
+# > control of the GRUB command line: cat /proc/cmdline
+
+# Basic cmdline for a listing of pci blocks and groups:
+> cmdline> listing pci addresses of graphic material and associated hdmi audio (if applicable):
+lspci -nn | grep -e "VGA" -e "Audio"
+> cmdline> control of the activation of the IOMMU and groups:
+find /sys/kernel/iommu_groups/ -type l
+
+script controlling the IOMMU and designating the detachable groups of the system (iommu_group.sh):
+--------------------------------------------------------------------------------------------------
+``
+#! /bin/bash
+
+# define the elements to check, ex: VGA, Audio, USB, etc.
+dev_type='VGA\|Audio'
+
+ifs=$IFS
+IFS=$(echo -en "\n\b")
+pci_slot=( $(lspci -nn | grep -e "$dev_type"| sed -En "s/^(.*[0-9]) (.*): (.*) \[.*:.*\].*$/\1|\2|\3/p") )
+if [ ${#pci_slot[@]} -gt 0 ]; then
+	for slot in ${pci_slot[@]}; do
+		pci_addr=$(printf "$slot"| cut -d'|' -f1)
+		pci_devs=$(printf "$slot"| cut -d'|' -f2| awk '{print $1}')
+		pci_brand=$(printf "$slot"| cut -d'|' -f3)
+		pci_group=$(find /sys/kernel/iommu_groups/ -type l| sed -En "s/^.*\/([0-9]{1,2})\/.*$pci_addr$/\1/p")
+		grp_members=$(find /sys/kernel/iommu_groups/ -type l| grep -c "$pci_group")
+		if [ $grp_members -le 2 ]; then
+			condition="detachable"
+		else
+			condition="multiple"
+		fi
+		echo -e "Grp: $pci_group\t$condition\t$pci_devs:\t$pci_addr > $pci_brand"
+	done
+else
+	echo -e "## IOMMU is not set ##"
+fi
+exit 0
+IFS=$ifs
+``
+
+## vfio bind script
+-------------------
+> create and save in / usr / local / sbin / vfio_bind:
+``
+#!/bin/sh
+
+## modify the line below as needed. 
+DEVS="0000:09:00.0 0000:09:00.1"
+
+for DEV in $DEVS; do
+    echo "vfio-pci" > /sys/bus/pci/devices/$DEV/driver_override
+    vendor=$(cat /sys/bus/pci/devices/$DEV/vendor)
+    device=$(cat /sys/bus/pci/devices/$DEV/device)
+        if [ -e /sys/bus/pci/devices/$DEV/driver ]; then
+            echo $DEV > /sys/bus/pci/devices/$DEV/driver/unbind
+        fi
+    echo $vendor $device > /sys/bus/pci/drivers/vfio-pci/new_id
+done
+modprobe -i vfio-pci
+``
+> and make it executable:
+chmod 755 /usr/local/sbin/vfio_bind
+
+## options to add to the initramfs
+----------------------------------
+# fedora:
+> create /etc/dracut.conf.d/local.conf (be careful the space after lightening is important):
+add_drivers+=" vfio vfio_iommu_type1 vfio_pci vfio_virqfd"
+install_items+="/usr/local/sbin/vfio_bind" 
+> recreate the initramfs :
+dracut -f --kver $(uname -r)
+
+# debian:
+> create /etc/modprobe.d/vfio.conf
+vfio vfio_iommu_type1 vfio_pci vfio_virqfd
+update-initramfs -u
+
+# arch:
+> add to /etc/mkinitcpio.conf: (before the graphics drivers if they are loaded by the config file)
+> line MODULES=""
+MODULES="<liste des modules présents> vfio vfio_iommu_type1 vfio_pci vfio_virqfd <liste des modules graphiques>"
+> line HOOKS="" : s'assurer de la présnce de 'modconf' dans la ligne de config.
+ex: HOOKS="base udev autodetect modconf block filesystems keyboard fsck"
+> rebuild default initramfs :
+mkinitcpio -g `ls -1 /boot | grep -iv "fallback"| grep "img"`
+> if the 'boot' directory contains several initramfs images, select the appropriate one
+or create a new specific to use and allowing a fallback in case of problem:
+mkinitcpio -g /boot/<image sélectionnée>.img
+(In the case of a custom image, it is necessary to update the file grub.conf with this one)
+(grub reconfig section to be added on request)
+
+# checked the support in the initramfs:
+(all configured drivers must be there, as well as the vfio_bind script)
+lsinitrd | grep -i "vfio"
+
+# > reboot
+# > control of the activation of the bind (the reported driver for the virtualized card must be vfio-pci):
+lspci -nnk -s :9
+(and for each VGA ref in lspci, the digit being the leading part of the ref in the PCI bus,
+ex: 0000: 09: 00.0)
+
+## VM creation with virt-manager
+--------------------------------
+Follow the instructions from this link:
+http://vfio.blogspot.com/2015/05/vfio-gpu-how-to-series-part-4-our-first.html
+
+** Warning ** It's best to install a clean windows 10 environment relieved of everything which is able to
+use memory and bandwidth unnecessarily. Thus, it will be possible later to adjust the memory allocated to 
+the VM and to allow the 2 environments to coexist peacefully to the maximum of their performances.
+
+# The VM is configured with the UEFI boot of OVMF (here with ovmf-x64/OVMF_CODE-pure-efi.fd)
+> fedora: dnf install edk2-ovmf (or/and dnf install edk2.git-ovmf-x64)
+> debian: apt-get install ovmf
+> arch: pacman -S ovmf
+OVMF files are usually installed in /usr/share/ovmf (/usr/share/edk2/ovmf for fedora).
+If they do not appear in the virt-manager list, it is necessary to declare them in the file
+config /etc/libvirt/qemu.conf:
+(the name of the ovmf files is an example, it can diverge according to the distribution and the choice of the user)
+nvram = [
+	"/usr/share/ovmf/x64/OVMF_CODE.fd:/usr/share/ovmf/x64/OVMF_VARS.fd"
+]
+For the example of the test machine this would give (it was not necessary):
+nvram = [
+	"/usr/share/edk2/ovmf-x64/OVMF_CODE-pure-efi.fd"
+]
+It can be added as many .fd files as needed.
+
+# the chipset can be put in Q35 which allows more performance (the example of the link is for security in i440FX, more stable).
+# It is easier to prepare the VM on physical rather than virtual disks with 2 partitions in GPT.
+the second partition used to contain the packages of the necessary applications as well as the drivers
+and to be able to quickly run a new installation when needed. A disk image is also valid, however it is 
+necessary to ensure the speed of the host storage.
+> When creating the VM, in the case of a hardware disk, enter:
+/dev/sdX pour le stockage (X représantant le lettre du disque dur à dédier).
+
+# lists of drivers and applications:
+> Nvidia driver
+> audio driver (if an audio card is dedicated to the VM)
+> the iso of the vfio drivers (virtio-win.iso of Fedora: https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.149-2/virtio-win.iso)
+> the iso of CPU drivers and other pci buses.
+> dxwebsetup.exe (only this one, optional, some games will require the installation of DirectX) https://www.microsoft.com/en-us/download/details.aspx?id=35
+> tightvnc server (essential to keep your hands on the VM if things go wrong) https://www.tightvnc.com/download/2.8.11/tightvnc-2.8.11-gpl-setup-64bit.msi
+> Open hardware Monitor (will control the performance of the VM and allow to adjust the memory afterward) https://openhardwaremonitor.org/files/openhardwaremonitor-v0.8.0-beta.zip
+> GPU-z (detailed values ​​of the graphics card) https://www.techpowerup.com/download/techpowerup-gpu-z/
+(If the VM is created on a machine already running Win 10 natively, it's easier to use an existing 
+folder /windows copy with the exception of graphics drivers) or a backup of:
+(this part is not yet tested)
+\windows\System32 (\config \Configurations \drivers \DriverStore \*.dll \*.exe)
+\windows\SysWow64 (est un hard link de System32, peut ne pas être nécessaire)
+\windows\WinSxS (tout)
+
+## cat /proc/cpuinfo output.
+----------------------------
+> Ryzen 5, 6 cores (6 reals + 6 virtuals)
+# cat /proc/cpuinfo | grep -i -e "processor.*:" -e "core id"
+** beware the 'core id' part does not necessarily match the output of /proc/cpuinfo **
+** the 'core id' pin in virsh must still respect the virtual processor chain (0,1,2,3,4, etc.) **
+# actual cores :
+processor	: 0  > core id		: 0 CPU 1
+processor	: 2  > core id		: 1 CPU 3
+processor	: 4  > core id		: 2 CPU 5
+processor	: 6  > core id		: 3 CPU 7
+processor	: 8  > core id		: 4 CPU 9
+processor	: 10 > core id		: 5 CPU 11
+
+# virtual cores:
+processor	: 1  > core id		: 0 *	CPU 2*
+processor	: 3  > core id		: 1 * CPU 4*
+processor	: 5  > core id		: 2 * CPU 6*
+processor	: 7  > core id		: 3 * CPU 8*
+processor	: 9  > core id		: 4 * CPU 10
+processor	: 11 > core id		: 5 * CPU 12
+
+## insert by virsh edit <name_of_vm>
+------------------------------------
+The script in the next section partially automates the <cputune> section.
+# vi command:
+# insert: i (esc to cancel the order)
+# copy a line: yy
+# paste a line: p
+# write:: w
+# exit:: q
+# write and exit:: wq
+
+## insert in the <domain type = 'kvm'> section
+# above the <os> section
+> hugepages (if defined):
+  <memoryBacking>
+    <hugepages/>
+  </memoryBacking>
+> cpu pining (virtual cores only):
+(or use the script at the bottom of the page to define an example configuration)
+>> vitual cores only:
+  <cputune>
+    <vcpupin vcpu='0' cpuset='1'/>
+    <vcpupin vcpu='1' cpuset='3'/>
+    <vcpupin vcpu='2' cpuset='5'/>
+    <vcpupin vcpu='3' cpuset='7'/>
+    <vcpupin vcpu='4' cpuset='9'/>
+    <vcpupin vcpu='5' cpuset='11'/>
+  </cputune>
+>>> section <cpu mode> under <features>
+  <cpu mode='host-passthrough' check='partial'>
+    <topology sockets='1' cores='6' threads='1'/>
+  </cpu> "
+> hardware core in threads (to check, impossibility of control on machine test):
+  <cputune>
+    <vcpupin vcpu='0' cpuset='0'/>
+    <vcpupin vcpu='1' cpuset='2'/>
+    <vcpupin vcpu='2' cpuset='4'/>
+  </cputune>
+>>> section <cpu mode> under <features>
+  <cpu mode='host-passthrough' check='partial'>
+    <topology sockets='1' cores='3' threads='2'/>
+  </cpu>
+
+## section <features> (fix Nvidia graphics card)
+# under the <apic/> section, insert:
+    <kvm>
+      <hidden state='on'/>
+    </kvm>
+
+# delete the part <hyperv>
+    <hyperv>
+      <relaxed state='on'/>
+      <vapic state='on'/>
+      <spinlocks state='on' retries='8191'/>
+    </hyperv>
+
+## section <clock offset='localtime'> (fix Nvidia graphics card)
+# delete the hypervclock line
+  <clock offset='localtime'>
+    <timer name='rtc' tickpolicy='catchup'/>
+    <timer name='pit' tickpolicy='delay'/>
+    <timer name='hpet' present='no'/>
+    <timer name='hypervclock' present='yes'/> ** here
+  </clock>
+
+## script cpu pining.
+---------------------
+> (this script is a helper and must be adapted to the needs)
+(improvements needed)
+cpu_pining.sh
+``
+#! /bin/bash
+
+n=0
+cpu_virts=$(cat /proc/cpuinfo |grep -i "sibling" |sed -n "s/^.*: //p" |sort -u)
+cpu_cores=$(cat /proc/cpuinfo |grep -i "cpu cores" |sed -n "s/^.*: //p" |sort -u)
+if [ $cpu_virts -gt $cpu_cores ]; then
+	tt_core=$cpu_virts
+	virsh_tab_1b+=('  <cputune>\n')
+	per_core=1
+else
+	tt_core=$cpu_cores
+	virsh_tab_2b+=('  <cputune>\n')
+	per_core=2
+fi
+
+until [ $n -eq $tt_core ]; do
+core_tab+=( $n,$(cat /proc/cpuinfo |cat /proc/cpuinfo |sed -n "/^processor.*: $n$/,/core id.*$/p"| sed -n '$s/^.*: //p') )
+((n++))
+done
+nr=0 ; nv=0
+for core in "${core_tab[@]}"; do
+	thread=$(printf "$core"| cut -d',' -f1)
+	r_core=$(printf "$core"| cut -d',' -f2)
+	if [[ -n $last_core && $last_core -eq $r_core ]]; then
+		virsh_tab_1a+=( "processor :\t$thread > core id : $nv CPU $(($thread+1)) $virtual\n" )
+		virsh_tab_1b+=( "    <vcpupin vcpu='$nv' cpuset='$thread'/>\n" )
+		((nv++))
+	else
+		if [[ ! -n $last_core || $last_core -ge 0 ]]; then
+			virsh_tab_2a+=( "processor :\t$thread > core id : $nr CPU $(($thread+1)) $virtual\n" )
+			virsh_tab_2b+=( "    <vcpupin vcpu='$nv' cpuset='$thread'/>\n" )
+			((nr++))
+		fi
+	fi
+	last_core=$r_core
+done
+if [ $per_core = 1 ]; then
+	virsh_tab_1b+=('  </cputune>\n')
+	echo -e "# real core table:"
+	echo -e " ${virsh_tab_2a[@]}"
+	echo -e "# virtual core table:"
+	echo -e " ${virsh_tab_1a[@]}"
+	echo -e "## Section <cputune> above <os> :"
+	echo -e "# CPU pining on virtual core only:"
+	echo -e " ${virsh_tab_1b[@]}"
+	
+else
+	virsh_tab_2b+=('  </cputune>\n')
+	echo -e "# real core table:"
+	echo -e " ${virsh_tab_2a[@]}"
+	echo -e "## Section <cputune> above <os> :"
+	echo -e "# CPU pining on real core (2 threads):"
+	echo -e " ${virsh_tab_2b[@]}"
+fi
+echo -e "## Section <cpu mode> after <features> :"
+echo -e "  <cpu mode='host-passthrough' check='partial'>
+    <topology sockets='1' cores='$(($cpu_virts/2))' threads='$per_core'/>
+  </cpu>"
+``
+
+## Benchmark.
+-------------
+Example Benchmark between native and VM with FFXIV Stormblood Benchmark DX11:
+(Both tests are noted excellent)
+NATIVE Score: 10916 - img/s: 74.392 - scenes loading time: 17,649 sec - Maximum graphics performance: - resolution: 1920x1080 75Mhz
+VM Score:     9283  - img/s: 64.694 - scenes loading time: 27.961 sec - Maximum graphics performance: - resolution: 1920x1080 75Mhz
+
+## Sources of articles used for the edition of this notepad:
+------------------------------------------------------------
+http://vfio.blogspot.com/2015/05/vfio-gpu-how-to-series-part-1-hardware.html
+https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF
+https://unix.stackexchange.com/questions/163495/libvirt-error-when-enabling-hugepages-for-guest
+https://fedoraproject.org/wiki/Features/KVM_Huge_Page_Backed_Memory
+https://help.ubuntu.com/community/KVM%20-%20Using%20Hugepages
+https://forum.hardware.fr/hfr/OSAlternatifs/Logiciels-2/unique-passthrough-linux-sujet_74047_1.htm
