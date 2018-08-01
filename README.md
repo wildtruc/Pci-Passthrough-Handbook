@@ -11,9 +11,9 @@ At this time, the 8th of August 2018, there's only a french and eglish handbook,
 
 The handbook was wrote afterward, so I have maybe missed some step. Tell me please if I did.
 
- * passthrough_handbook-french (v2018-8-1) .txt format.
+ * [passthrough_handbook-french](passthrough_handbook-french.txt) (v2018-8-1) .txt format.
  
- * passthrough_handbook-english (v2018-8-1) .txt format.
+ * [passthrough_handbook-english](passthrough_handbook-english.txt) (v2018-8-1) .txt format.
  
 ------------------------------------------
 ### Scripts
@@ -22,10 +22,10 @@ Most are taken from already existing tutorials and articles pages, some are modi
 #### Helpers
 There is probably more scripts that could be wrote to simplify user's experience. Add your's or patch with your enhancement.
 
- - **iommu_group.sh** Will display in clear tabs iommu groups for VGA and Audio after system basic iommu init.
+ - **[iommu_group](iommu_group.sh)** Will display in clear tabs iommu groups for VGA and Audio after system basic iommu init.
  
- - **cpu_pining** will display the corresponding processor/thread in .xml syntax for ``virsh edit`` (could/should be enhanced)
+ - **[cpu_pining](cpu_pining.sh)** will display the corresponding processor/thread in .xml syntax for ``virsh edit`` (could/should be enhanced)
 
 #### System
 
- - **vfio_bind** override /sys/bus specifics files launched at boot time. Copy/paste to /usr/local/sbin after edit to proper pci IDs.
+ - **[vfio_bind](vfio_bind)** override /sys/bus specifics files launched at boot time. Copy/paste to /usr/local/sbin after edit to proper pci IDs.
