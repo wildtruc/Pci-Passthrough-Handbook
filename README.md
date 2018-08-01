@@ -3,27 +3,29 @@
 This is a pci-passthrough handbook based on my own experience while installing and configuring a Qemu-KVM virtualized OS to play the rares games I own and can't use under Wine layer.
 
 I wrote the handbook for some french online friends with the same project and the pci-passthrough issues based on 2 Nvidia graphics cards. 
-There's many tutorials arround the web, some are very technical, some give how-to from personnal experience (as i'm doing there), but there's only one article taking about the Nvidia card not very fair issue and how-to workaroound it. 
+There's many tutorials arround the web, some are very technical, some give how-to from personnal experience (as i'm doing there), but there's only one article taking about the Nvidia card not very fair issue and how-to workaround it. 
 
 I could wrote some blog spot somewhere or add comments to the already existing pages, but I though it should a better way to push it on GIT and give the possibilty to readers to discuss and add their patches, translations and distro specifics to help as many people as possible.
 
-At this time, the 8th of August 2018, there's only a french handbook, but I'm' hoping there will be more with reader's help in a near future.
+At this time, the 8th of August 2018, there's only a french and eglish handbook, but I'm' hoping there will be more with reader's help in a near future.
 
 The handbook was wrote afterward, so I have maybe missed some step. Tell me please if I did.
 
  * passthrough_handbook-french (v2018-8-1) .txt format.
+ 
+ * passthrough_handbook-english (v2018-8-1) .txt format.
  
 ------------------------------------------
 ### Scripts
 Most are taken from already existing tutorials and articles pages, some are modified, some are wrote from scratch.
 
 #### Helpers
-There is probably more scripts that could be wrote to simplify user experience. Add your's or patch with your enhancement.
+There is probably more scripts that could be wrote to simplify user's experience. Add your's or patch with your enhancement.
 
- - *iommu_group.sh* Will display in clear tabs iommu groups for VGA and Audio after system basic iommu init.
+ - **iommu_group.sh** Will display in clear tabs iommu groups for VGA and Audio after system basic iommu init.
  
- - *cpu_pining* will display the corresponding processor/thread in .xml syntax for ``virsh edit`` (could/should be enhanced)
+ - **cpu_pining** will display the corresponding processor/thread in .xml syntax for ``virsh edit`` (could/should be enhanced)
 
 #### System
 
- - *vfio_bind* override /sys/bus specifics files launched at boot time. Copy/paste to /usr/local/sbin after edit to proper pci IDs.
+ - **vfio_bind** override /sys/bus specifics files launched at boot time. Copy/paste to /usr/local/sbin after edit to proper pci IDs.
