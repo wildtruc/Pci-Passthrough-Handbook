@@ -36,5 +36,5 @@ There is probably more scripts that could be wrote to simplify user's experience
  
 ------------------------------------------
 
-### Note aux lecteurs francophone :
-Le readme es en anglais de manière à toucher le plus de monde possible. Vous pouvez à tout moment en demander un traduction si vous rencontrez des difficultés.
+### Note aux lecteurs francophones :
+Le readme est en anglais de manière à toucher le plus de monde possible. Vous pouvez à tout moment en demander une traduction si vous rencontrez des difficultés.
