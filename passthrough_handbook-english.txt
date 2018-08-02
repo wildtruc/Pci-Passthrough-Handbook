@@ -282,7 +282,7 @@ necessary to ensure the speed of the host storage.
 # lists of drivers and applications:
 > Nvidia driver
 > audio driver (if an audio card is dedicated to the VM)
-> the iso of the vfio drivers (virtio-win.iso of Fedora: https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.149-2/virtio-win.iso)
+> the iso of the vfio drivers (virtio-win.iso of Fedora: https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/)
 > the iso of CPU drivers and other pci buses.
 > dxwebsetup.exe (only this one, optional, some games will require the installation of DirectX) https://www.microsoft.com/en-us/download/details.aspx?id=35
 > tightvnc server (essential to keep your hands on the VM if things go wrong) https://www.tightvnc.com/download/2.8.11/tightvnc-2.8.11-gpl-setup-64bit.msi
@@ -463,3 +463,7 @@ https://unix.stackexchange.com/questions/163495/libvirt-error-when-enabling-huge
 https://fedoraproject.org/wiki/Features/KVM_Huge_Page_Backed_Memory
 https://help.ubuntu.com/community/KVM%20-%20Using%20Hugepages
 https://forum.hardware.fr/hfr/OSAlternatifs/Logiciels-2/unique-passthrough-linux-sujet_74047_1.htm
+https://ycnrg.org/vga-passthrough-with-ovmf-vfio/
+
+## virtio iso link :
+https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/
