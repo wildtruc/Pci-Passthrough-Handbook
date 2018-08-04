@@ -13,3 +13,6 @@ for DEV in $DEVS; do
     echo $vendor $device > /sys/bus/pci/drivers/vfio-pci/new_id
 done
 modprobe -i vfio-pci
+## (comment/uncomment) If /etc/sysctl.conf is leave unconfigured for hugepages allocation, you can setup
+## it here (replace x by defined pages number) :
+#sysctl vm.nr_hugepages=xxxx vm.hugetlb_shm_group=36

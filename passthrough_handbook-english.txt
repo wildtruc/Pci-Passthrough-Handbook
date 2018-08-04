@@ -110,8 +110,6 @@ Endsection
 > intel: intel_iommu=on rd.driver.pre=vfio-pci iommu=pt hugepages=2048
 ## or either in (fedora; debian, arch):
 # /etc/default/grub, ligne GRUB_CMDLINE_LINUX
- /etc/mkinitcpio.conf
-> 
 
 ## hugepages:
 -------------
@@ -127,6 +125,7 @@ Hugepage is optional.
 XX*1024*1024/2048 = xxxx pages
 > ex pour 8∕16Go de RAM :
 8*1024*1024/2048 = 4096 pages
+12*1024*1024/2048 = 6144 pages
 16*1024*1024/2048 = 8192 pages
 
 # insert the number of pages allocated in /etc/sysctl.conf:
@@ -140,8 +139,14 @@ the mount point defined below is only valid for the pre-reboot test.
 mount -t hugetlbfs hugetlbfs /dev/hugepages
 sysctl vm.nr_hugepages=4096 vm.hugetlb_shm_group=36
 # note :
-If the mount point does not appear in the /dev directory after reboot, it must be added to /etc/fstab (not tested).
+> If the mount point does not appear in the /dev directory after reboot, it must be added to /etc/fstab (not tested).
 hugetlbfs    /hugepages    hugetlbfs    defaults    0 0
+> The configuration of /etc/sysctl.conf is not a mandatory requirement, especially since the number of pages
+can be subjected to many tests. For automated configuration at startup uncomment and modify the 'systcl' line
+in the'vfio_bind' script a bit lower in handbook at 'vfio bind script' section.
+
+# note: In Fedora, the allocation of a 2048kB block per page is automated by the system. The option
+in grub.cfg 'hugepages=2048' is probably not necessary.
 
 # > reboot
 # > control of the GRUB command line: cat /proc/cmdline
@@ -203,6 +208,9 @@ for DEV in $DEVS; do
     echo $vendor $device > /sys/bus/pci/drivers/vfio-pci/new_id
 done
 modprobe -i vfio-pci
+## (comment/uncomment) If /etc/sysctl.conf is leave unconfigured for hugepages allocation, you can setup
+## it here (replace x by defined pages number) :
+#sysctl vm.nr_hugepages=xxxx vm.hugetlb_shm_group=36
 ``
 > and make it executable:
 chmod 755 /usr/local/sbin/vfio_bind
