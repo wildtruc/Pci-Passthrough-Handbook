@@ -24,6 +24,12 @@ La carte graphique dédié à la VM doit être configurée dans le xorg.conf com
 prise en charge automatique par l'environnement Linux.
 Le fichier xorg suivant est un exemple depuis la machine test et doit etre modifié aux besoins :
 (obtention des BusID avec : lspci -nn | grep -e "VGA")
+
+** Avertissement ** Il n'as pas été possible de lancer proprement la VM en utilisant un seul écran sur des
+connexions différentes (HDMI, DVI. HDMI, Display-port n'as pas été testé), l'EFI de l'invité n'étant à même
+d'initialiser un connecteur désactivé.
+Deux écrans sont obligatoirement prérequis.
+
 ``
 Section "Monitor"
     ## écran dédié à la VM
@@ -147,8 +153,8 @@ hugetlbfs    /hugepages    hugetlbfs    defaults    0 0
 soumis à de nombruex tests. Pour une configuration automatisée au démarrage décommenter et modifier la ligne
 'systcl' dans le script 'vfio_bind' un peu plus bas dans le texte.
 
-# note: Dans Fedora,l'attribution d'un bloc de 2048kB par page est automatisée par le système. L'option
-dans grub.cfg 'hugepages=2048' n'espt probablement pas nécessaire.
+# note: Dans Fedora, l'attribution d'un bloc de 2048kB par page est automatisée par le système. L'option
+dans grub.cfg 'hugepages=2048' n'est probablement pas nécessaire.
 
 # > reboot
 # > controle de la ligne de commende GRUB: cat /proc/cmdline
@@ -161,6 +167,7 @@ find /sys/kernel/iommu_groups/ -type l
 
 script controlant l'IOMMU et désignant les groupes détachable du système (iommu_group.sh):
 -----------------------------------------------------------------------------------------
+(regroupe les 2 commandes ci-dessus de manière ordonnée)
 ``
 #! /bin/bash
 
@@ -228,6 +235,7 @@ install_items+="/usr/local/sbin/vfio_bind"
 dracut -f --kver $(uname -r)
 
 # debian:
+(la méthode peut tout aussi bien être appliquée à Fedora à l'exception de la commande de l'initramfs)
 > créer /etc/modprobe.d/vfio.conf
 vfio vfio_iommu_type1 vfio_pci vfio_virqfd
 update-initramfs -u
@@ -258,6 +266,20 @@ ex: 0000:09:00.0)
 
 ## création de la VM avec virt-manager
 --------------------------------------
+Installer virt-manager si ce n'est pas déjà fait :
+> fedora : dnf install @virtualization
+> debian :
+> arch :
+
+** Avertissement ** virt-manager a besoin d'avoir accès au système, il lui faut pour cela les accès root.
+Il est possible que le fichier /etc/libvirt/qemu.conf ne soit pas configuré avec ces accès. Décommenter
+les lignes suivantes dans /etc/libvirt/qemu.conf :
+``
+user = "root"
+group = "root"
+clear_emulator_capabilities = 0 > par défaut à 1 dans le fichier.
+``
+
 Suivre les instruction de ce lien:
 http://vfio.blogspot.com/2015/05/vfio-gpu-how-to-series-part-4-our-first.html
 

@@ -7,13 +7,18 @@ There's many tutorials arround the web, some are very technical, some give how-t
 
 I could wrote some blog spot somewhere or add comments to the already existing pages, but I though it should a better way to push it on GIT and give the possibilty to readers to discuss and add their patches, translations and distro specifics to help as many people as possible.
 
-At this time, the 8th of August 2018, there's only a french and english handbooks, but I'm' hoping there will be more with reader's help in a near future.
+At this time, the 8th of August 2018, there's only a french and english handbooks, but I'm' hopping there will be more with reader's help in a near future.
 
 The handbook was wrote afterward, so I have maybe missed some step. Tell me please if I did.
 
- * [passthrough_handbook-french](passthrough_handbook-french.txt) (v2018-8-1) .txt format.
+ * [passthrough_handbook-french](passthrough_handbook-french.txt) .txt format.
  
- * [passthrough_handbook-english](passthrough_handbook-english.txt) (v2018-8-1) .txt format.
+ * [passthrough_handbook-english](passthrough_handbook-english.txt) .txt format.
+ 
+You can simply follow the instructions from this page or you may download them locally with the command-line below :
+``git clone https://github.com/wildtruc/Pci-Passthrough-Handbook.git``
+
+You can also add the GIT repos on your watch list to stay update for changes and enhancements.
  
 ------------------------------------------
 

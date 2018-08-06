@@ -24,6 +24,11 @@ The graphics card dedicated to the VM must be configured in the xorg.conf as dis
 automatic support by Linux environment.
 The following xorg file is an example from the test machine and needs to be modified as needed:
 (getting BusID with: lspci -nn | grep -e "VGA")
+
+** Warning ** It has been not possible to properly launch the VM using a single screen on different
+connections (HDMI, DVI. HDMI, Display-port is not tested), the guest EFI not being able to initialize
+a disabled connector.
+Two screens are required.
 ``
 Section "Monitor"
     ## screen dedicated to the VM
@@ -159,6 +164,7 @@ find /sys/kernel/iommu_groups/ -type l
 
 script controlling the IOMMU and designating the detachable groups of the system (iommu_group.sh):
 --------------------------------------------------------------------------------------------------
+(regroups the 2 command-lines above in an ordered mode)
 ``
 #! /bin/bash
 
@@ -225,6 +231,7 @@ install_items+="/usr/local/sbin/vfio_bind"
 dracut -f --kver $(uname -r)
 
 # debian:
+(the same method can be applied to Fedora except for the initramfs command)
 > create /etc/modprobe.d/vfio.conf
 vfio vfio_iommu_type1 vfio_pci vfio_virqfd
 update-initramfs -u
@@ -255,6 +262,20 @@ ex: 0000: 09: 00.0)
 
 ## VM creation with virt-manager
 --------------------------------
+install the virt-manager if not already done :
+> fedora : dnf install @virtualization
+> debian : 
+> arch :
+
+** Warning ** virt-manager needs full system access, it requires root privileges.
+It is very possible that the /etc/libvirt/qemu.conf file is not configured with these accesses. Uncomment
+the following lines in /etc/libvirt/qemu.conf if necessary :
+``
+user = "root"
+group = "root"
+clear_emulator_capabilities = 0 > default to 1 in the file.
+``
+
 Follow the instructions from this link:
 http://vfio.blogspot.com/2015/05/vfio-gpu-how-to-series-part-4-our-first.html
 
