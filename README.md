@@ -34,6 +34,8 @@ There is probably more scripts that could be wrote to simplify user's experience
  - **[iommu_group](iommu_group.sh)** Will display in clear tabs iommu groups for VGA and Audio after system basic iommu init.
  
  - **[cpu_pining](cpu_pining.sh)** will display the corresponding processor/thread in .xml syntax for ``virsh edit`` (could/should be enhanced)
+ 
+ - **[kvm_usb](kvm_usb.sh)** will display USB PCI detachable controllers for the VM use. (could be enhanced)
 
 #### System
 

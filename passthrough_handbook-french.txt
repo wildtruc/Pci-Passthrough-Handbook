@@ -2,9 +2,8 @@
 IL RÉCAPITULE LES ÉTAPES POUR UN PCI-PASSTHROUGH PROPRE PAR SON AUTEUR PRIMAIRE.
 --------------------------------------------------------------------------------
 
-## AVERTISSEMENT : la configuration du pci-stub déclaré dans de nombreux tutoriels ne concerne que les
-kernels antérieurs à la version 4.1. Toutes les distributions actuelles ou correctement mises à jour ont
-des kernels supérieurs à 4.1. Il n'y a donc pas lieu de tenir compte de cette configuration.
+## AVERTISSEMENT : la configuration du pci-stub déclaré dans de nombreux tutoriels ne concerne que les kernels antérieurs à la version 4.1.
+Toutes les distributions actuelles ou correctement mises à jour ont des kernels supérieurs à 4.1, il n'y a donc pas lieu de tenir compte de cette configuration.
 
 ## Identification de la machine test :
 -------------------------------------
@@ -20,15 +19,12 @@ Pilote Nvidia propriétaire.
 
 ## carte graphique et configuration Xorg
 ----------------------------------------
-La carte graphique dédié à la VM doit être configurée dans le xorg.conf comme désactivé pour éviter toutes
-prise en charge automatique par l'environnement Linux.
+La carte graphique dédié à la VM doit être configurée dans le xorg.conf comme désactivé pour éviter toutes prise en charge automatique par l'environnement Linux.
 Le fichier xorg suivant est un exemple depuis la machine test et doit etre modifié aux besoins :
 (obtention des BusID avec : lspci -nn | grep -e "VGA")
 
-** Avertissement ** Il n'as pas été possible de lancer proprement la VM en utilisant un seul écran sur des
-connexions différentes (HDMI, DVI. HDMI, Display-port n'as pas été testé), l'EFI de l'invité n'étant à même
-d'initialiser un connecteur désactivé.
-Deux écrans sont obligatoirement prérequis.
+** Avertissement ** Il n'as pas été possible de lancer proprement la VM en utilisant un seul écran sur des connexions différentes (HDMI, DVI. HDMI, Display-port n'as pas été testé), l'EFI de l'invité n'étant à même
+d'initialiser un connecteur désactivé. Deux écrans sont obligatoirement prérequis.
 
 ``
 Section "Monitor"
@@ -121,11 +117,9 @@ Endsection
 -------------
 (source '2 Answers' https://unix.stackexchange.com/questions/163495/libvirt-error-when-enabling-hugepages-for-guest)
 hugepages alloue de manière statique un montant X de mémoire par core.
-Une fois allouée cette quantité de mémoire ne sera pas plus disponible pour le système et uniquement pour
-les applications configurées pour l'utiliser.
+Une fois allouée cette quantité de mémoire ne sera pas plus disponible pour le système et uniquement pour les applications configurées pour l'utiliser.
 Hugepage alloue par défaut un bloc de 1024M par core.
-Ainsi, on peut envisager des block allant de 1024 > 2048 > 3072 > 4096, selon la quantité disponible et 
-les capacités du CPU (la plupart ne peuvent pas aller au-delà de 2048).
+Ainsi, on peut envisager des block allant de 1024 > 2048 > 3072 > 4096, selon la quantité disponible et les capacités du CPU (la plupart ne peuvent pas aller au-delà de 2048).
 Hugepage est optionel.
 
 # Calcul des pages à allouer (XX réprésentant la RAM à allouer à la VM):
@@ -141,20 +135,17 @@ vm.nr_hugepages = 4096
 vm.hugetlb_shm_group = 36
 
 # test direct :
-Attention: la machine test (fedora 27) possède un point de montage déjà défini (/dev/hugepages/libvirt/qemu/)
-le point de montage défini ci-dessous n'est valable que pour le test avant reboot.
+Attention: la machine test (fedora 27) possède un point de montage déjà défini (/dev/hugepages/libvirt/qemu/).
+Le point de montage défini ci-dessous n'est valable que pour le test avant reboot.
 mount -t hugetlbfs hugetlbfs /dev/hugepages
 sysctl vm.nr_hugepages=4096 vm.hugetlb_shm_group=36
 # note :
-> Si le point de montage n'apparait pas dans le répertoire /dev après redémarrage, il doit être ajouté à
-/etc/fstab (non, testé).
+> Si le point de montage n'apparait pas dans le répertoire /dev après redémarrage, il doit être ajouté à /etc/fstab (non, testé).
 hugetlbfs    /hugepages    hugetlbfs    defaults    0 0
-> La configuration de /etc/sysctl.conf n'est pas une obligation d'autant que le nombre de pages peut être
-soumis à de nombruex tests. Pour une configuration automatisée au démarrage décommenter et modifier la ligne
-'systcl' dans le script 'vfio_bind' un peu plus bas dans le texte.
+> La configuration de /etc/sysctl.conf n'est pas une obligation d'autant que le nombre de pages peut être soumis à de nombruex tests. Pour une configuration automatisée au démarrage décommenter et modifier la ligne 'systcl' dans le script 'vfio_bind' un peu plus bas dans le texte.
 
-# note: Dans Fedora, l'attribution d'un bloc de 2048kB par page est automatisée par le système. L'option
-dans grub.cfg 'hugepages=2048' n'est probablement pas nécessaire.
+# note: Dans Fedora, l'attribution d'un bloc de 2048kB par page est automatisée par le système.
+L'option dans grub.cfg 'hugepages=2048' n'est probablement pas nécessaire.
 
 # > reboot
 # > controle de la ligne de commende GRUB: cat /proc/cmdline
@@ -272,8 +263,8 @@ Installer virt-manager si ce n'est pas déjà fait :
 > arch :
 
 ** Avertissement ** virt-manager a besoin d'avoir accès au système, il lui faut pour cela les accès root.
-Il est possible que le fichier /etc/libvirt/qemu.conf ne soit pas configuré avec ces accès. Décommenter
-les lignes suivantes dans /etc/libvirt/qemu.conf :
+Il est possible que le fichier /etc/libvirt/qemu.conf ne soit pas configuré avec ces accès.
+Décommenter les lignes suivantes dans /etc/libvirt/qemu.conf :
 ``
 user = "root"
 group = "root"
@@ -283,10 +274,7 @@ clear_emulator_capabilities = 0 > par défaut à 1 dans le fichier.
 Suivre les instruction de ce lien:
 http://vfio.blogspot.com/2015/05/vfio-gpu-how-to-series-part-4-our-first.html
 
-** Avertissement ** Il est préférable d'installer un environnement windows 10 propre soulagé de tout ce
-qui est à même de d'utiliser la mémoire et la bande passante inutilement. Ainsi, il sera possible par la suite
-d'ajuster la mémoire allouée à la VM et de permettre au 2 environnements de coexister paisiblement au maximum
-de leurs performances.
+** Avertissement ** Il est préférable d'installer un environnement windows 10 propre soulagé de tout ce qui est à même de d'utiliser la mémoire et la bande passante inutilement. Ainsi, il sera possible par la suite d'ajuster la mémoire allouée à la VM et de permettre au 2 environnements de coexister paisiblement au maximum de leurs performances.
 
 # La VM est configurée avec le boot UEFI de OVMF (ici avec ovmf-x64/OVMF_CODE-pure-efi.fd)
 > fedora : dnf install edk2-ovmf (ou/et dnf install edk2.git-ovmf-x64)
@@ -307,9 +295,8 @@ Il peut être ajouté autant de fichiers .fd que nécessaire.
 
 # le chipset peut être mis en Q35 qui permet plus de performance (l'exemple du lien est par sécurité en i440FX, plus stable).
 # il est plus simple de préparé la VM sur des disque matériels plutot que virtuels avec 2 partitions en GPT.
-la seconde partition servant à contenir les paquets des applications indispensables ainsi que les pilotes
-et de pouvoir éxécuter rapidement une nouvelle installation en cas de besoin. Une image disque est tout 
-aussi valable, cependant il faut s'assurer de la rapidité de lecteur höte.
+La seconde partition servant à contenir les paquets des applications indispensables ainsi que les pilotes et de pouvoir éxécuter rapidement une nouvelle installation en cas de besoin. Une image disque est tout 
+aussi valable, cependant il faut s'assurer de la rapidité de lecteur hôte.
 > A la création de la VM, dans le cas d'un disque matériel, entrer : 
 /dev/sdX pour le stockage (X représantant le lettre du disque dur à dédier).
 
@@ -344,12 +331,12 @@ processor	: 8  > core id		: 4 CPU 9
 processor	: 10 > core id		: 5 CPU 11
 
 # cores virtuel:
-processor	: 1  > core id		: 0 *	CPU 2*
-processor	: 3  > core id		: 1 * CPU 4*
-processor	: 5  > core id		: 2 * CPU 6*
-processor	: 7  > core id		: 3 * CPU 8*
-processor	: 9  > core id		: 4 * CPU 10
-processor	: 11 > core id		: 5 * CPU 12
+processor	: 1  > core id		: 0 CPU 2
+processor	: 3  > core id		: 1 CPU 4
+processor	: 5  > core id		: 2 CPU 6
+processor	: 7  > core id		: 3 CPU 8
+processor	: 9  > core id		: 4 CPU 10
+processor	: 11 > core id		: 5 CPU 12
 
 ## insertion par virsh edit <nom_de_la_vm>
 ------------------------------------------
@@ -416,7 +403,7 @@ Le script dans section suivante permet de partiellement automatisé la section <
     <timer name='hypervclock' present='yes'/> ** ici
   </clock>
 
-## script cpu pining.
+## script cpu_pining.
 ---------------------
 > (ce script est un helper et doit être adapter aux besoins)
 (améliorations nécessaire)
@@ -480,7 +467,7 @@ echo -e "## Section <cpu mode> after <features> :"
 echo -e "  <cpu mode='host-passthrough' check='partial'>
     <topology sockets='1' cores='$(($cpu_virts/2))' threads='$per_core'/>
   </cpu>"
-``
+```
 
 ## Benchmark.
 -------------
@@ -501,3 +488,50 @@ https://ycnrg.org/vga-passthrough-with-ovmf-vfio/
 
 ## Lien iso virtio :
 https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/
+
+## KVM et partage de clavier/souris.
+------------------------------------
+(il a été initialement supposé que l'utisation d'un KVM serait simple, ça n'a pas été le cas, au point de devoir ajouter ce mini-tutoriel au handbook et son script spécifique associé)
+Le problème d'un invité en passthrough est que cela oblige à avoir 2 claviers et 2 souris en permanence. La solution la plus simple est d'avoir un KVM sous la main en attendant que le projet 'looking_glass' est fait de plus grand progrès (status actuel: alpha).
+(https://forum.level1techs.com/t/looking-glass-guides-help-and-support/122387
+https://looking-glass.hostfission.com/
+https://github.com/gnif/LookingGlass/)
+
+# Appareil :
+N'importe quel KVM avec des port USB convient du moment où il permet de faire un switch aisé entre la l'hote et l'invité (matérielement ou par raccourci clavier), le port vidéo étant strictement optionnel.
+Cependant, et si on n'en possède pas déjà un, le mieux est d'en acquérir un modèle adapté à l'usage.
+Dans ce cas et si on compte utiliser le KVM autant pour l'USB que pour la vidéos, la gamme Roline (après de longue recherche) est celle qui se prête le mieux à l'utilissation virtuel et elle présente 2 modèles: HDMI/USB, Display-port/USB.
+
+# Configuration de la VM:
+** Attention ** Cette configuration fonctionne sur la machine test. Ceci ne garantit en aucune manière qu'elle fonctionnera de la même manière sur d'autre Carte-Mère avec une disposition différente du bus PCI.  
+
+** Ajouter directement le port du HUB USB du KVM avec virt-manager s'est avéré disfonctionnel, l'invité s'étant trouvé incapable de reconnaitre l'intégralité des membres du HUB sur le KVM.
+Le seul moyen a été d'isolé un port PCI détachable controlant un HUB USB de la Carte mère. **
+
+# Trouver un port PCI détachable :
+> Ajouter l'argument `USB` à la variable `dev_type` dans le script `iommu_group`. Repérer le matériel détachable dans la sortie.
+> Lancer la commende `lsusb` pour afficher les matériels connecté (séléctionner en un aisement reconnaissable pour les tests).
+> Exécuter la ligne de commande suivante où <pci_dev> correspond au controlleur détachable obtenu plus haut :
+find /sys/devices/pci0000\:00/ -type l | egrep -i "^.*0000:<pci_dev>.*\/usb.*\/[0-9]{4}:.*:.*\..*$"| sed -En "s|^.*\/0000:(.*{2}:.*{2}.[0-9]{1})\/(usb[0-9]{1}).*\/[0-9]{4}:(.*)\..{4}\/.*$|\1 \2 \3|p"| sort -u
+** la sortie (ex: 0a:00.3 usb5 09EB:0131) correspond respectivement à <port pci détachable> <bus usb> <id matériel> **
+** la sortie 'usbX' correspond à la sortie 'Bus 00X' de `lsusb` **
+> Exécuter la ligne de commande `lsusb` suivante de manière à clairement identifier le matériel usb test :
+lsusb -d <id matériel>
+> Répéter autant de fois que nécessaire les opérations pour une identication claire des conecteurs du controlleur PCI à détacher vers la VM.
+
+# Connecter le KVM à la VM:
+> Connecter le cable USB dédié à l'invité sur le KVM au connecteur USB du controlleur PCI détachable.
+> Connecter le cable USB dédié à l'hote sur n'importe quel autre connecteur USB non lié au controlleur PCI détachable.
+> Ajouter le périphérique PCI à la VM à l'aide de virt-manager.
+> Lancer la VM. Le swicth devrait s'exécuter sans encombre.
+
+Note : Si le controlleur PCI détachable possède plusieurs connecteurs USB, ils seront tous utilisable par la VM. 
+
+## script kvm_usb:
+> Ce script rassemble les actions de `iommu_group.sh` et les sous-commendes de recherche `lsusb` et `egrep` de manière ordonnée.
+(peut être certainement amélioré)
+
+## Gamme KVM Roline (à titre indicatif) :
+https://www.ebay.fr/itm/ROLINE-DisplayPort-USB-2-0-KVM-Switch-1-User-2-PC/273386897896?hash=item3fa72101e8:g:iCgAAOSwEPtZZHK7
+
+

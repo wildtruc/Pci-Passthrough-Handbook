@@ -2,9 +2,8 @@
 IT SUMMARIZES THE STEPS FOR A CLEAN PCI-PASSTHROUGH BY ITS PRIMARY AUTHOR.
 --------------------------------------------------------------------------
 
-## WARNING: the configuration of the pci-stub declared in many tutorials concerns only the
-kernels prior to version 4.1. All current or correctly updated distributions have
-kernels greater than 4.1. There is no need to consider this configuration.
+## WARNING: the configuration of the pci-stub declared in many tutorials concerns only the kernels prior to version 4.1.
+All current or correctly updated distributions have kernels greater than 4.1, there is no need to consider this configuration.
 
 ## Identification of the test machine:
 -------------------------------------
@@ -20,15 +19,11 @@ Nvidia owner driver.
 
 ## graphic card and Xorg configuration
 --------------------------------------
-The graphics card dedicated to the VM must be configured in the xorg.conf as disabled to avoid all
-automatic support by Linux environment.
+The graphics card dedicated to the VM must be configured in the xorg.conf as disabled to avoid all automatic support by Linux environment.
 The following xorg file is an example from the test machine and needs to be modified as needed:
 (getting BusID with: lspci -nn | grep -e "VGA")
 
-** Warning ** It has been not possible to properly launch the VM using a single screen on different
-connections (HDMI, DVI. HDMI, Display-port is not tested), the guest EFI not being able to initialize
-a disabled connector.
-Two screens are required.
+** Warning ** It has been not possible to properly launch the VM using a single screen on different connections (HDMI, DVI. HDMI, Display-port is not tested), the guest EFI not being able to initialize a disabled connector. Two screens are required.
 ``
 Section "Monitor"
     ## screen dedicated to the VM
@@ -122,8 +117,7 @@ Endsection
 hugepages statically allocates an X amount of memory per core.
 Once allocated this amount of memory will not be available for the system anymore and only for applications configured to use it.
 Hugepage allocates a block of 1024M per core by default.
-Thus, we can consider blocks ranging from 1024> 2048> 3072> 4096, depending on the quantity available and
-CPU capabilities (most can not go beyond 2048).
+Thus, we can consider blocks ranging from 1024> 2048> 3072> 4096, depending on the quantity available and CPU capabilities (most can not go beyond 2048).
 Hugepage is optional.
 
 # Calculation of the pages to allocate (XX representing the RAM to allocate to the VM):
@@ -139,16 +133,13 @@ vm.nr_hugepages = 4096
 vm.hugetlb_shm_group = 36
 
 # direct test:
-Warning: the test machine (fedora 27) has an already defined mount point (/dev/hugepages/libvirt/qemu/)
-the mount point defined below is only valid for the pre-reboot test.
+Warning: the test machine (fedora 27) has an already defined mount point (/dev/hugepages/libvirt/qemu/) the mount point defined below is only valid for the pre-reboot test.
 mount -t hugetlbfs hugetlbfs /dev/hugepages
 sysctl vm.nr_hugepages=4096 vm.hugetlb_shm_group=36
 # note :
 > If the mount point does not appear in the /dev directory after reboot, it must be added to /etc/fstab (not tested).
 hugetlbfs    /hugepages    hugetlbfs    defaults    0 0
-> The configuration of /etc/sysctl.conf is not a mandatory requirement, especially since the number of pages
-can be subjected to many tests. For automated configuration at startup uncomment and modify the 'systcl' line
-in the'vfio_bind' script a bit lower in handbook at 'vfio bind script' section.
+> The configuration of /etc/sysctl.conf is not a mandatory requirement, especially since the number of pages can be subjected to many tests. For automated configuration at startup uncomment and modify the 'systcl' line in the'vfio_bind' script a bit lower in handbook at 'vfio bind script' section.
 
 # note: In Fedora, the allocation of a 2048kB block per page is automated by the system. The option
 in grub.cfg 'hugepages=2048' is probably not necessary.
@@ -279,9 +270,7 @@ clear_emulator_capabilities = 0 > default to 1 in the file.
 Follow the instructions from this link:
 http://vfio.blogspot.com/2015/05/vfio-gpu-how-to-series-part-4-our-first.html
 
-** Warning ** It's best to install a clean windows 10 environment relieved of everything which is able to
-use memory and bandwidth unnecessarily. Thus, it will be possible later to adjust the memory allocated to 
-the VM and to allow the 2 environments to coexist peacefully to the maximum of their performances.
+** Warning ** It's best to install a clean windows 10 environment relieved of everything which is able to use memory and bandwidth unnecessarily. Thus, it will be possible later to adjust the memory allocated to the VM and to allow the 2 environments to coexist peacefully to the maximum of their performances.
 
 # The VM is configured with the UEFI boot of OVMF (here with ovmf-x64/OVMF_CODE-pure-efi.fd)
 > fedora: dnf install edk2-ovmf (or/and dnf install edk2.git-ovmf-x64)
@@ -339,12 +328,12 @@ processor	: 8  > core id		: 4 CPU 9
 processor	: 10 > core id		: 5 CPU 11
 
 # virtual cores:
-processor	: 1  > core id		: 0 *	CPU 2*
-processor	: 3  > core id		: 1 * CPU 4*
-processor	: 5  > core id		: 2 * CPU 6*
-processor	: 7  > core id		: 3 * CPU 8*
-processor	: 9  > core id		: 4 * CPU 10
-processor	: 11 > core id		: 5 * CPU 12
+processor	: 1  > core id		: 0 CPU 2
+processor	: 3  > core id		: 1 CPU 4
+processor	: 5  > core id		: 2 CPU 6
+processor	: 7  > core id		: 3 CPU 8
+processor	: 9  > core id		: 4 CPU 10
+processor	: 11 > core id		: 5 CPU 12
 
 ## insert by virsh edit <name_of_vm>
 ------------------------------------
@@ -411,12 +400,12 @@ The script in the next section partially automates the <cputune> section.
     <timer name='hypervclock' present='yes'/> ** here
   </clock>
 
-## script cpu pining.
+## script cpu_pining.
 ---------------------
 > (this script is a helper and must be adapted to the needs)
 (improvements needed)
 cpu_pining.sh
-``
+```
 #! /bin/bash
 
 n=0
@@ -475,7 +464,7 @@ echo -e "## Section <cpu mode> after <features> :"
 echo -e "  <cpu mode='host-passthrough' check='partial'>
     <topology sockets='1' cores='$(($cpu_virts/2))' threads='$per_core'/>
   </cpu>"
-``
+```
 
 ## Benchmark.
 -------------
@@ -496,3 +485,53 @@ https://ycnrg.org/vga-passthrough-with-ovmf-vfio/
 
 ## virtio iso link :
 https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/
+
+## KVM and keyboard/mouse sharing.
+------------------------------------
+(it was initially assumed that the use of a KVM would be simple, this was not the case, to the point of
+having to add this mini-tutorial to the handbook and its associated specific script)
+The problem with a passthrough guest is that it requires 2 keyboards and 2 mices permanently.
+The simpliest solution is to have a KVM on the side while waiting for the 'looking_glass' project to make
+greater progress (current status: alpha).
+(https://forum.level1techs.com/t/looking-glass-guides-help-and-support/122387
+https://looking-glass.hostfission.com/
+https://github.com/gnif/LookingGlass/)
+
+# Device :
+Any KVM with USB port is suitable as long as it allows an easy switch between host and guest (hardware or keyboard shortcut), the video port remaining strictly optional.
+However, if you do not already have such a device, it is best to choose a suitable model.
+In this case and if you intend to use KVM for both USB and video, the Roline line (after a long research) is the one that is most suitable for virtual use and it features 2 models: HDMI/USB, Display-port/USB.
+
+# VM configuration:
+** Warning ** This configuration works on the test machine. This in no way assures that it will work the same on other Motherboards with a different PCI bus layout.  
+
+** Adding the KVM USB HUB port directly with virt-manager was found to be dysfunctional, as the guest was unable to recognize all HUB members on the KVM.
+The only way was to isolate a detachable PCI slot controlling a USB HUB from the motherboard. **
+
+# Find a detachable PCI slot:
+> Add the `USB` argument to the `dev_type` variable in the `iommu_group` script. Locate the detachable pci controller in the output.
+> Run the `lsusb` command to display the connected hardware (select a recognizable one for testing).
+> Run the following command line where <pci_dev> corresponds to the detachable controller you have obtained above :
+find /sys/devices/pci0000\:00/ -type l | egrep -i "^.*0000:<pci_dev>.*\/usb.*\/[0-9]{4}:.*:.*\..*$"| sed -En "s|^.*\/0000:(.*{2}:.*{2}.[0-9]{1})\/(usb[0-9]{1}).*\/[0-9]{4}:(.*)\..{4}\/.*$|\1 \2 \3|p"| sort -u
+** the output (ex: 0a:00.3 usb5 09EB:0131) corresponds respectively to <detachable pci port> <usb bus> <hardware id> **
+** the output'usbX' corresponds to the output 'Bus 00X' of `lsusb` **
+> Run the following `lsusb` command line to clearly identify the test usb hardware:
+lsusb -d <hardware id>
+> Repeat as many times as necessary to clearly identify the PCI controller connectors to be detached to the VM.
+
+# Connect the KVM to the VM:
+> Connect the USB cable dedicated to the guest on the KVM to the USB connector of the detachable PCI controller.
+> Connect the USB cable dedicated to the host to any other USB connector not connected to the detachable PCI controller.
+> Add the PCI device to the VM using virt-manager.
+> Launch the VM. The swicth should run smoothly.
+
+Note: If the detachable PCI controller has multiple USB slots, they will be all usable by the VM. 
+
+## kvm_usb script:
+> This script collects the `iommu_group.sh` actions and the `lsusb` and `egrep` search subcommands in an ordered way.
+(could certainly be improved)
+
+## Roline KVM device market link (for reference only):
+https://www.ebay.fr/itm/ROLINE-DisplayPort-USB-2-0-KVM-Switch-1-User-2-PC/273386897896?hash=item3fa72101e8:g:iCgAAOSwEPtZZHK7
+
+(Translate tool helper : www.DeepL.com/Translator)
