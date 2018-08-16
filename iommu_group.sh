@@ -23,5 +23,5 @@ if [ ${#pci_slot[@]} -gt 0 ]; then
 else
 	echo -e "## IOMMU is not set ##"
 fi
-exit 0
 IFS=$ifs
+exit 0
