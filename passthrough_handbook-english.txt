@@ -488,8 +488,7 @@ https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/
 
 ## KVM and keyboard/mouse sharing.
 ------------------------------------
-(it was initially assumed that the use of a KVM would be simple, this was not the case, to the point of
-having to add this mini-tutorial to the handbook and its associated specific script)
+(it was initially assumed that the use of a KVM would be simple, this was not the case, to the point of having to add this mini-tutorial to the handbook and its associated specific script)
 The problem with a passthrough guest is that it requires 2 keyboards and 2 mices permanently.
 The simpliest solution is to have a KVM on the side while waiting for the 'looking_glass' project to make
 greater progress (current status: alpha).

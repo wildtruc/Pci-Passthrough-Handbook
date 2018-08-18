@@ -15,11 +15,13 @@ The handbook was wrote afterward, so I have maybe missed some step. Tell me plea
  
  * [passthrough_handbook-english](passthrough_handbook-english.txt) .txt format.
  
-You can simply follow the instructions from this page or you may download them locally with the command-line below :
-``git clone https://github.com/wildtruc/Pci-Passthrough-Handbook.git``
+You can just follow the instructions from the actual page or you may download them locally with the command-line below :
+```bash
+git clone https://github.com/wildtruc/Pci-Passthrough-Handbook.git
+```
 
 You can also add the GIT repos on your watch list to stay update for changes and enhancements.
- 
+
 ------------------------------------------
 
 You can also follow the excellent blog post [VFIO tips and tricks](http://vfio.blogspot.com/2015/05/vfio-gpu-how-to-series-part-1-hardware.html) by [Alex Williamson](https://www.blogger.com/profile/02071923591707250496) alongside the handbook. The post and comments are very educational and useful.
@@ -35,7 +37,7 @@ There is probably more scripts that could be wrote to simplify user's experience
  
  - **[cpu_pining](cpu_pining.sh)** will display the corresponding processor/thread in .xml syntax for ``virsh edit`` (could/should be enhanced)
  
- - **[kvm_usb](kvm_usb.sh)** will display USB PCI detachable controllers for the VM use. (could be enhanced)
+ - **[kvm_usb](kvm_usb.sh)** will display in ordered tabs USB PCI detachable controllers for the VM use. (could be enhanced)
 
 #### System
 
