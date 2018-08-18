@@ -469,9 +469,10 @@ echo -e "  <cpu mode='host-passthrough' check='partial'>
 ## Benchmark.
 -------------
 Example Benchmark between native and VM with FFXIV Stormblood Benchmark DX11:
-(Both tests are noted excellent)
+(the 3 tests are noted excellent)
 NATIVE Score: 10916 - img/s: 74.392 - scenes loading time: 17,649 sec - Maximum graphics performance: - resolution: 1920x1080 75Mhz
-VM Score:     9283  - img/s: 64.694 - scenes loading time: 27.961 sec - Maximum graphics performance: - resolution: 1920x1080 75Mhz
+VM Score (nvidia quality mode):     9283  - img/s: 64.694 - scenes loading time: 27.961 sec - graphics performance: maximum - resolution: 1920x1080 75Mhz
+VM Score (nvidia performance mode): 9333  - img/s: 65.187 - scenes loading time: 28.138 sec - graphics performance: maximum - resolution: 1920x1080 75Mhz
 
 ## Sources of articles used for the edition of this notepad:
 ------------------------------------------------------------
