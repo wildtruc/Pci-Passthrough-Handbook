@@ -469,6 +469,12 @@ echo -e "  <cpu mode='host-passthrough' check='partial'>
   </cpu>"
 ```
 
+## Note sur l'Audio HDMI
+------------------------
+** CRITIQUE ** La partie Audio HDMI des cartes Nvidia possèdant le même ID pci, le matériel audio des 2 cartes graphiques géré par Pulseaudio passe inévitablement à la VM lors de son lancement.
+Il convient de stopper tous processus gèrés par Pulseaudio avant de lancer la VM pour palier à tous crashes de QEMU-KVM qui peuvent geler le système et contraindre au hard reboot.
+ex: lecteur audio, lecteur video, jeux, etc.
+
 ## Benchmark.
 -------------
 Exemple Benchmark entre natif et VM avec FFXIV Stormblood Benchmark DX11 :
