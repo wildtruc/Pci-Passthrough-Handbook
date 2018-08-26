@@ -31,7 +31,7 @@ You can also follow the excellent blog post [VFIO tips and tricks](http://vfio.b
 Most are taken from already existing tutorials and articles pages, some are modified, some are wrote from scratch.
 
 #### Helpers
-There is probably more scripts that could be wrote to simplify user's experience. Add your's or patch with your enhancement.
+There are probably more scripts that could be wrote to simplify user's experience. Add your's or patch with your enhancement.
 
  - **[iommu_group](iommu_group.sh)** Will display in clear tabs iommu groups for VGA and Audio after system basic iommu init.
  
